@@ -1,5 +1,5 @@
 import { CheckCircleTwoTone, CloseCircleTwoTone, ExclamationCircleTwoTone } from '@ant-design/icons';
-import { Card, Empty, List } from 'antd';
+import { Card, /* Empty, */ List } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 const NoticeCenter: React.FC = () => {

@@ -1,9 +1,9 @@
 {
   "name": "map-electorn",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "versionCode": "2024122001",
   "type": "module",
-  "productName": "mapTool",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",

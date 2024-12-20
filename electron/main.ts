@@ -45,7 +45,7 @@ function createWindow() {
     win?.webContents.send('main-process-message', (new Date).toLocaleString())
   })
   
-  win.webContents.openDevTools()
+  // win.webContents.openDevTools()
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
@@ -53,7 +53,7 @@ function createWindow() {
     // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
-  win.setIcon(path.join(process.env.VITE_PUBLIC, 'logo.svg'));
+  win.setIcon(path.join(process.env.VITE_PUBLIC, 'logo.jpg'));
 }
 
 // Quit when all windows are closed, except on macOS. There, it's common

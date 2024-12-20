@@ -2,6 +2,7 @@ import type { MenuProps } from 'antd'
 import { Button, Layout, List, Menu, Switch } from "antd"
 import { useState } from 'react'
 type MenuItem = Required<MenuProps>['items'][number]
+import config from "../../../../package.json"
 import "./index.less"
 
 const Setting = () => {
@@ -80,7 +81,7 @@ const Setting = () => {
             <List
               itemLayout="horizontal"
               dataSource={[
-                { title: "当前版本", describe: "当前版本：1.0.0（202412201）", actions: [<Button type='default' size='small' shape="round">监测更新</Button>] },
+                { title: "当前版本", describe: `当前版本：${config.version}（${config.versionCode}）`, actions: [<Button type='default' size='small' shape="round">监测更新</Button>] },
                 { title: "node版本", describe: `${versions?.node()}`, actions: [] },
                 { title: "chrome版本", describe: `${versions?.chrome()}`, actions: [] },
                 { title: "electron版本", describe: `${versions?.electron()}`, actions: [] },
