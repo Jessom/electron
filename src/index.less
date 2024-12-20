@@ -1,0 +1,44 @@
+body { margin: 0; }
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-size: 12px;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  --primary-color: #f00;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+    background-color: #F0F3F6;
+  }
+  /* 滚动槽 */
+  ::-webkit-scrollbar-track {
+    border-radius: 3px;
+  }
+  /* 滚动条滑块 */
+  ::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: #d6dbdf;
+    background-color: #DCDFE4;
+  }
+  ::-webkit-scrollbar-thumb:window-inactive {
+    background: #DCDFE4;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
