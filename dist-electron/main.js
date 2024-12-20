@@ -1,50 +1,65 @@
-import { app as n, BrowserWindow as s, ipcMain as t } from "electron";
-import { createRequire as l } from "node:module";
-import { fileURLToPath as m } from "node:url";
-import o from "node:path";
-l(import.meta.url);
-const r = o.dirname(m(import.meta.url));
-process.env.APP_ROOT = o.join(r, "..");
-const i = process.env.VITE_DEV_SERVER_URL, _ = o.join(process.env.APP_ROOT, "dist-electron"), c = o.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = i ? o.join(process.env.APP_ROOT, "public") : c;
-let e;
-function a() {
-  e = new s({
+import { app, BrowserWindow, ipcMain } from "electron";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+process.env.APP_ROOT = path.join(__dirname, "..");
+const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
+const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
+const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
+let win;
+function createWindow() {
+  win = new BrowserWindow({
     width: 1057,
     height: 752,
-    frame: !1,
-    icon: o.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    frame: false,
+    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
-      nodeIntegration: !1,
+      nodeIntegration: false,
       // 保持安全性
-      contextIsolation: !0,
-      preload: o.join(r, "preload.mjs")
+      contextIsolation: true,
+      preload: path.join(__dirname, "preload.mjs")
     }
-  }), e.webContents.on("did-finish-load", () => {
-    e == null || e.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  }), i ? e.loadURL(i) : e.loadFile(o.join(c, "index.html")), e.setIcon(o.join(process.env.VITE_PUBLIC, "logo.jpg"));
+  });
+  win.webContents.on("did-finish-load", () => {
+    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
+  });
+  win.webContents.openDevTools();
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
+  win.setIcon(path.join(process.env.VITE_PUBLIC, "logo.jpg"));
 }
-n.on("window-all-closed", () => {
-  process.platform !== "darwin" && (n.quit(), e = null);
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+  }
 });
-n.on("activate", () => {
-  s.getAllWindows().length === 0 && a();
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
-n.whenReady().then(a);
-t.on("window-max", function() {
-  e == null || e.maximize();
+app.whenReady().then(createWindow);
+ipcMain.on("window-max", function() {
+  win == null ? void 0 : win.maximize();
 });
-t.on("window-normal", function() {
-  e == null || e.restore();
+ipcMain.on("window-normal", function() {
+  win == null ? void 0 : win.restore();
 });
-t.on("window-min", function() {
-  e == null || e.minimize();
+ipcMain.on("window-min", function() {
+  win == null ? void 0 : win.minimize();
 });
-t.on("window-close", function() {
-  e == null || e.close();
+ipcMain.on("window-close", function() {
+  win == null ? void 0 : win.close();
 });
 export {
-  _ as MAIN_DIST,
-  c as RENDERER_DIST,
-  i as VITE_DEV_SERVER_URL
+  MAIN_DIST,
+  RENDERER_DIST,
+  VITE_DEV_SERVER_URL
 };

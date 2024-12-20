@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from "react-router-dom"
-import { useNavigate } from "react-router-dom"
+import { Outlet, useNavigate, useLocation } from "react-router-dom"
 // import { WaterMark } from '@ant-design/pro-components';
 import NoticeCenter from "../components/NoticeCenter/index"
 import logo from '/logo.svg'
@@ -12,6 +11,7 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 const App = () => {
   const naviate = useNavigate()
+  const location = useLocation()
   const [windowStatus, setWindowStatus] = useState('normal')
   const [pathname, setPathname] = useState('/')
   const [menus] = useState<MenuItem[]>([
@@ -53,7 +53,16 @@ const App = () => {
       <Layout>
         {/* <header style={{height: '64px'}}></header> */}
         <Layout.Header className='header'>
-          <Button icon={<LeftOutlined />} />
+          <Button
+            icon={<LeftOutlined />}
+            disabled={history.length <= 1}
+            onClick={() => {
+              console.log(history);
+              if(history.length > 1) {
+                history.go(-1)
+              }
+            }}
+          />
           <Input
             prefix={<SearchOutlined />}
             placeholder="搜索方案"
