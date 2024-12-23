@@ -1,6 +1,5 @@
 import { /* createBrowserRouter, */ createHashRouter } from "react-router-dom"
 import Layout from "./layout/index"
-import LazyLoad from "./LazyLoad"
 import Dashboard from "./pages/dashboard/index"
 import MineSetting from "./pages/mine/setting"
 
