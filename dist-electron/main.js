@@ -12,8 +12,10 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 let win;
 function createWindow() {
   win = new BrowserWindow({
-    width: 1057,
-    height: 752,
+    /* width: 1057,
+    height: 752, */
+    width: 320,
+    height: 448,
     frame: false,
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
@@ -27,6 +29,7 @@ function createWindow() {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
   });
   win.webContents.openDevTools();
+  console.log(VITE_DEV_SERVER_URL);
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
@@ -57,6 +60,12 @@ ipcMain.on("window-min", function() {
 });
 ipcMain.on("window-close", function() {
   win == null ? void 0 : win.close();
+});
+ipcMain.on("login", function() {
+  win == null ? void 0 : win.setSize(1057, 752);
+});
+ipcMain.on("logout", function() {
+  win == null ? void 0 : win.setSize(320, 448);
 });
 export {
   MAIN_DIST,
