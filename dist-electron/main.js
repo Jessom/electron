@@ -1,7 +1,11 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { Menu, app, BrowserWindow, ipcMain } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+function buildMenu() {
+  const menu = Menu.buildFromTemplate([]);
+  Menu.setApplicationMenu(menu);
+}
 createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
@@ -9,55 +13,73 @@ const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
-let win;
-function createWindow() {
-  win = new BrowserWindow({
-    width: 1057,
-    height: 752,
-    frame: false,
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+let loginWindow;
+let mainWindow;
+function createWindow(config, url) {
+  const baseConfig = {
+    show: false,
     webPreferences: {
-      nodeIntegration: false,
-      // 保持安全性
-      contextIsolation: true,
       preload: path.join(__dirname, "preload.mjs")
+      // sandbox: false,
+      // webSecurity: false,
+      // nodeIntegration: true, // 根据需要设置
+      // contextIsolation: false, // 根据需要设置
+      // devTools: true
     }
-  });
-  win.webContents.on("did-finish-load", () => {
-    win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
-  });
-  win.webContents.openDevTools();
+  };
+  const finalConfig = { ...baseConfig, ...config };
+  const win = new BrowserWindow(finalConfig);
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    win.loadFile(url);
   }
-  win.setIcon(path.join(process.env.VITE_PUBLIC, "logo.jpg"));
+  buildMenu();
+  win.once("ready-to-show", () => win.show());
+  return win;
 }
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-    win = null;
-  }
-});
+function createLoginWindow() {
+  loginWindow = createWindow(
+    {
+      width: 320,
+      height: 448,
+      autoHideMenuBar: true
+    },
+    path.join(__dirname, "index.html")
+  );
+  loginWindow.webContents.on("did-finish-load", () => {
+    loginWindow == null ? void 0 : loginWindow.webContents.send("replace", "/login");
+  });
+  loginWindow.setIcon(path.join(process.env.VITE_PUBLIC, "logo.jpg"));
+  ipcMain.once("login", () => {
+    loginWindow == null ? void 0 : loginWindow.close();
+    createMainWindow();
+  });
+}
+function createMainWindow() {
+  mainWindow = createWindow(
+    {
+      width: 1057,
+      height: 752,
+      autoHideMenuBar: false
+    },
+    path.join(__dirname, "index.html")
+  );
+  mainWindow.setIcon(path.join(process.env.VITE_PUBLIC, "logo.jpg"));
+  ipcMain.once("open-window", () => {
+    createMainWindow();
+  });
+  ipcMain.once("logout", () => {
+    mainWindow == null ? void 0 : mainWindow.close();
+    createLoginWindow();
+  });
+}
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
+    createLoginWindow();
   }
 });
-app.whenReady().then(createWindow);
-ipcMain.on("window-max", function() {
-  win == null ? void 0 : win.maximize();
-});
-ipcMain.on("window-normal", function() {
-  win == null ? void 0 : win.restore();
-});
-ipcMain.on("window-min", function() {
-  win == null ? void 0 : win.minimize();
-});
-ipcMain.on("window-close", function() {
-  win == null ? void 0 : win.close();
-});
+app.whenReady().then(createLoginWindow);
 export {
   MAIN_DIST,
   RENDERER_DIST,

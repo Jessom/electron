@@ -1,9 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { buildMenu } from "./common/menu"
 
-// const require = createRequire(import.meta.url)
 createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -25,72 +25,94 @@ export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
 
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 'public') : RENDERER_DIST
 
-let win: BrowserWindow | null
+// let win: BrowserWindow | null
+let loginWindow: BrowserWindow | null
+let mainWindow: BrowserWindow | null
 
-function createWindow() {
-  win = new BrowserWindow({
-    width: 1057,
-    height: 752,
-    frame: false,
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+function createWindow(config: BrowserWindowConstructorOptions, url: string) {
+  const baseConfig = {
+    show: false,
     webPreferences: {
-      nodeIntegration: false, // 保持安全性
-      contextIsolation: true,
       preload: path.join(__dirname, 'preload.mjs'),
-    },
-  })
+      // sandbox: false,
+      // webSecurity: false,
+      // nodeIntegration: true, // 根据需要设置
+      // contextIsolation: false, // 根据需要设置
+      // devTools: true
+    }
+  }
 
-  // Test active push message to Renderer-process.
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
-  })
-  
-  win.webContents.openDevTools()
+  /* if (process.platform === 'linux') {
+    baseConfig.icon = icon
+  } */
+
+  const finalConfig = { ...baseConfig, ...config }
+  const win = new BrowserWindow(finalConfig)
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
   } else {
     // win.loadFile('dist/index.html')
-    win.loadFile(path.join(RENDERER_DIST, 'index.html'))
+    win.loadFile(url)
   }
-  win.setIcon(path.join(process.env.VITE_PUBLIC, 'logo.jpg'));
+  buildMenu()
+  win.once('ready-to-show', () => win.show())
+
+  return win
 }
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-    win = null
-  }
-})
+// 创建登录窗口
+function createLoginWindow() {
+  loginWindow = createWindow(
+    {
+      width: 320,
+      height: 448,
+      autoHideMenuBar: true
+    },
+    path.join(__dirname, "index.html")
+  )
+
+  // 加载 /login 路由
+  loginWindow.webContents.on('did-finish-load', () => {
+    loginWindow?.webContents.send('replace', '/login')
+  })
+  loginWindow.setIcon(path.join(process.env.VITE_PUBLIC, 'logo.jpg'));
+  // loginWindow.webContents.openDevTools()
+  ipcMain.once('login', () => {
+    loginWindow?.close()
+    createMainWindow()
+  })
+}
+
+// 创建主窗口
+function createMainWindow() {
+  mainWindow = createWindow(
+    {
+      width: 1057,
+      height: 752,
+      autoHideMenuBar: false
+    },
+    path.join(__dirname, 'index.html')
+  )
+  
+  mainWindow.setIcon(path.join(process.env.VITE_PUBLIC, 'logo.jpg'));
+  ipcMain.once('open-window', () => {
+    createMainWindow()
+  })
+
+  ipcMain.once('logout', () => {
+    mainWindow?.close()
+    createLoginWindow()
+  })
+
+}
 
 app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow()
+    createLoginWindow()
   }
 })
 
-app.whenReady().then(createWindow)
-
-// 窗口最大化
-ipcMain.on('window-max', function () {
-  win?.maximize();
-})
-// 窗口回复
-ipcMain.on('window-normal', function () {
-  win?.restore();
-})
-
-// 窗口最小化
-ipcMain.on('window-min', function () {
-  win?.minimize();
-})
-
-// 窗口关闭
-ipcMain.on('window-close', function () {
-  win?.close();
-})
+app.whenReady().then(createLoginWindow)

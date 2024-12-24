@@ -1,12 +1,12 @@
 import { defineConfig } from 'vite'
-import path, { resolve } from 'node:path'
+import path from 'node:path'
 import electron from 'vite-plugin-electron/simple'
-import react from '@vitejs/plugin-react'
+import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    vue(),
     electron({
       main: {
         // Shortcut of `build.lib.entry`.
@@ -26,19 +26,4 @@ export default defineConfig({
         : {},
     }),
   ],
-  resolve: {
-    alias: [
-      {
-        find: '@',
-        replacement: resolve(__dirname, './src'),
-      }
-    ]
-  },
-  css: {
-    preprocessorOptions: {
-      less: {
-        javascriptEnabled: true, // 启用 JavaScript 支持（根据需要）
-      },
-    },
-  },
 })
