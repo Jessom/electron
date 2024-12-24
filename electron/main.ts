@@ -78,9 +78,16 @@ function createLoginWindow() {
   })
   loginWindow.setIcon(path.join(process.env.VITE_PUBLIC, 'logo.jpg'));
   // loginWindow.webContents.openDevTools()
+
+  // 等了成功，关闭登录窗口，创建主窗口
   ipcMain.once('login', () => {
     loginWindow?.close()
     createMainWindow()
+  })
+
+  // 关闭窗口
+  ipcMain.on("window-close", function() {
+    loginWindow?.close()
   })
 }
 
@@ -100,11 +107,28 @@ function createMainWindow() {
     createMainWindow()
   })
 
+  // 退出登录，关闭主窗口，创建登录窗口
   ipcMain.once('logout', () => {
     mainWindow?.close()
     createLoginWindow()
   })
 
+  // 窗口最大化
+  ipcMain.on("window-max", function() {
+    mainWindow?.maximize()
+  })
+  // 恢复窗口
+  ipcMain.on("window-normal", function() {
+    mainWindow?.restore()
+  })
+  // 窗口最小化
+  ipcMain.on("window-min", function() {
+    mainWindow?.minimize()
+  })
+  // 关闭主窗口
+  ipcMain.on("window-close", function() {
+    mainWindow?.close()
+  })
 }
 
 app.on('activate', () => {
